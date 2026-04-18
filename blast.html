@@ -1,0 +1,217 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Blast Terintegrasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&display=swap');
+
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Fira Code', monospace;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #matrix-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            opacity: 0.25;
+        }
+
+        .terminal-container {
+            position: relative;
+            z-index: 10;
+            background: rgba(0, 15, 0, 0.9);
+            border: 2px solid #0f0;
+            padding: 2rem;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            width: 90%;
+            max-width: 550px;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .countdown-number {
+            font-size: 6rem;
+            font-weight: bold;
+            text-shadow: 0 0 15px #0f0;
+            margin: 10px 0;
+        }
+
+        .warning-text {
+            color: #ff0000;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: pulse 0.8s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.02); }
+        }
+
+        .success-box {
+            border: 2px solid #0f0;
+            background: rgba(0, 40, 0, 0.6);
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hidden { display: none; }
+        
+        .btn-refresh {
+            margin-top: 20px;
+            padding: 8px 20px;
+            border: 1px solid #0f0;
+            background: transparent;
+            color: #0f0;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .btn-refresh:hover {
+            background: #0f0;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="terminal-container">
+        <div id="boot-sequence" class="text-left text-[10px] opacity-70 mb-4 h-32 overflow-hidden"></div>
+        
+        <div id="step-1" class="hidden">
+            <h1 class="text-xl mb-2">MENGINISIALISASI...</h1>
+            <div class="countdown-number" id="counter">3</div>
+        </div>
+
+        <div id="step-2" class="hidden">
+            <div class="warning-text text-xl mb-4">PERINGATAN KRITIS!</div>
+            <p class="text-sm mb-4">
+                Siapkan WA Anda untuk di-blast karna waktu Anda tersisa <span id="timer" class="font-bold text-lg">5</span> detik lagi!
+            </p>
+            <div class="w-full bg-gray-900 h-3 rounded-full overflow-hidden">
+                <div id="progress" class="bg-red-600 h-full w-0 transition-all duration-500"></div>
+            </div>
+        </div>
+
+        <div id="step-3" class="hidden text-left">
+            <div class="success-box">
+                <h2 class="text-2xl font-bold mb-2 text-center">✅ BLAST BERHASIL!</h2>
+                <div class="h-px bg-green-500 w-full mb-4"></div>
+                <p class="text-lg mb-1">Status: <span class="text-white">Selesai</span></p>
+                <p class="text-lg mb-4">Saldo Anda: <span class="text-white font-bold text-xl">Rp 2.400,00</span></p>
+                
+                <div class="bg-black p-3 border-l-4 border-yellow-500 italic text-sm text-yellow-200">
+                    "Kesuksesan bukan tentang seberapa cepat kamu sampai, tapi tentang seberapa kuat kamu bertahan. Saldo Rp 2.400 hari ini adalah langkah awal menuju sukses besar!"
+                </div>
+            </div>
+            <center><button onclick="location.reload()" class="btn-refresh text-xs">ULANGI</button></center>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = "1010101010101010";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px monospace";
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 35);
+
+        const bootEl = document.getElementById('boot-sequence');
+        const logs = ["> System init...", "> Loading modules...", "> Establishing secure link...", "> Ready."];
+        let logIdx = 0;
+
+        function runBoot() {
+            if (logIdx < logs.length) {
+                bootEl.innerHTML += logs[logIdx] + "<br>";
+                logIdx++;
+                setTimeout(runBoot, 300);
+            } else {
+                setTimeout(() => {
+                    bootEl.classList.add('hidden');
+                    document.getElementById('step-1').classList.remove('hidden');
+                    startCountdown();
+                }, 500);
+            }
+        }
+
+        function startCountdown() {
+            let count = 3;
+            const counterEl = document.getElementById('counter');
+            const itv = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    counterEl.innerText = count;
+                } else {
+                    clearInterval(itv);
+                    showWarning();
+                }
+            }, 1000);
+        }
+
+        function showWarning() {
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+            let time = 5;
+            const timerEl = document.getElementById('timer');
+            const progEl = document.getElementById('progress');
+            const itv = setInterval(() => {
+                time--;
+                timerEl.innerText = time;
+                progEl.style.width = ((5 - time) / 5 * 100) + "%";
+                if(time <= 0) {
+                    clearInterval(itv);
+                    showFinal();
+                }
+            }, 1000);
+        }
+
+        function showFinal() {
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+        }
+
+        window.onload = runBoot;
+    </script>
+</body>
+</html>
+
+```
