@@ -1,0 +1,363 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal Authorization System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&display=swap');
+
+        body {
+            background-color: #000a05;
+            color: #00ff88;
+            font-family: 'Fira Code', monospace;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #matrix-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .terminal-container {
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(180deg, rgba(0, 20, 10, 0.98) 0%, rgba(0, 5, 2, 1) 100%);
+            border: 2px solid #00ff88;
+            padding: 2rem;
+            box-shadow: 0 0 80px rgba(0, 255, 136, 0.3);
+            width: 92%;
+            max-width: 500px;
+            text-align: center;
+            border-radius: 40px;
+            backdrop-filter: blur(20px);
+        }
+
+        .countdown-number {
+            font-size: 8rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 30px #00ff88;
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 15px #00ff88;
+        }
+
+        .wallet-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-radius: 30px;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .dana-chip {
+            background: #008afb;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 12px;
+            box-shadow: 0 4px 15px rgba(0, 138, 251, 0.4);
+        }
+
+        .progress-track {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            height: 20px;
+            border-radius: 50px;
+            margin: 15px 0;
+            padding: 4px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #ffffff);
+            box-shadow: 0 0 25px #00ff88;
+            width: 100%; /* Target tercapai */
+            border-radius: 50px;
+        }
+
+        .input-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            color: white;
+            padding: 14px;
+            width: 100%;
+            border-radius: 18px;
+            text-align: center;
+            font-size: 16px;
+            margin-top: 12px;
+            outline: none;
+        }
+
+        .btn-withdraw {
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            color: #001a0d;
+            font-weight: 900;
+            padding: 16px 0;
+            width: 100%;
+            border-radius: 18px;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 20px 10px rgba(0, 255, 136, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px dashed #00ff88;
+            padding: 10px;
+            border-radius: 12px;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 15px;
+        }
+
+        .hidden { display: none; }
+
+        .loader {
+            border: 5px solid rgba(0, 255, 136, 0.1);
+            border-left-color: #00ff88;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="terminal-container">
+        <!-- Seq 1: Booting -->
+        <div id="boot-box" class="text-left text-[10px] opacity-60 mb-4 h-24 overflow-hidden font-mono"></div>
+        
+        <!-- Seq 2: 3-2-1 -->
+        <div id="step-1" class="hidden">
+            <h1 class="text-sm font-bold tracking-widest text-white uppercase">Finalizing Withdrawal Gateway</h1>
+            <div class="countdown-number" id="counter">3</div>
+        </div>
+
+        <!-- Seq 3: Turbo Blast -->
+        <div id="step-2" class="hidden">
+            <h2 class="text-2xl font-black mb-2 text-white italic">FINAL INJECTION...</h2>
+            <div class="timer-display" id="timer">30.00</div>
+            <div class="progress-track">
+                <div id="blast-progress" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="text-[9px] text-green-500 font-mono text-left" id="blast-logs"></div>
+        </div>
+
+        <!-- Seq 4: SUCCESS DASHBOARD 10400 -->
+        <div id="step-3" class="hidden text-left">
+            <div class="alert-success text-center">
+                ⚠ PERINGATAN: AMBANG BATAS TERCAPAI. DANA SUDAH BISA DITARIK SEKARANG!
+            </div>
+
+            <div class="wallet-card">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="dana-chip">DANA PREMIUM</span>
+                    <span class="text-[9px] text-green-400 font-bold uppercase tracking-widest">Withdrawal Ready</span>
+                </div>
+
+                <h2 class="text-xl font-black text-white mb-1">TARGET TERCAPAI 100%</h2>
+                <p class="text-[10px] text-green-500/70 mb-5 font-mono italic">TRX_AUTH: 0x10400_SUCCESS_VERIFIED</p>
+
+                <div class="bg-green-500/10 p-6 rounded-3xl border-2 border-green-500/30 mb-6">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Saldo Tersedia</p>
+                    <p class="text-5xl font-black text-white tracking-tighter">Rp 10.400<span class="text-green-500 text-xl">,00</span></p>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] mb-2 font-bold">
+                        <span class="text-gray-400">STATUS PENCAIRAN</span>
+                        <span class="text-green-400 tracking-tighter">COMPLETE (100%+)</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="text-[10px] text-green-400 font-bold uppercase block mb-1">Nomor DANA Tujuan</label>
+                    <input type="number" id="phone-final" placeholder="08XXXXXXXXXX" class="input-box">
+                    <button onclick="finalSubmit()" class="btn-withdraw">Tarik Saldo Sekarang</button>
+                </div>
+
+                <div class="bg-white/5 p-4 rounded-xl border-l-4 border-green-500 text-[11px] leading-relaxed text-gray-300">
+                    <b class="text-green-400 block mb-1 uppercase">Pesan Kemenangan</b>
+                    Selamat karena kamu telah berhasil membuktikan bahwa ketekunan selalu membuahkan hasil. Saldo 10.400 adalah awal dari kesuksesan yang lebih besar lagi. Masukkan nomor DANA kamu dan nikmati hasil kerja kerasmu tanpa batas hari ini.
+                </div>
+            </div>
+        </div>
+
+        <!-- Seq 5: Processing -->
+        <div id="step-4" class="hidden py-10">
+            <div class="loader"></div>
+            <h2 class="text-lg font-bold text-white mb-2">MENGIRIM DANA KE SERVER...</h2>
+            <div id="final-logs" class="text-[10px] text-green-500/60 font-mono text-left"></div>
+        </div>
+
+        <!-- Seq 6: Final Success -->
+        <div id="step-5" class="hidden">
+            <div class="text-7xl mb-6">🏆</div>
+            <h2 class="text-3xl font-black text-white mb-2">DANA DIPROSES!</h2>
+            <div class="h-1 bg-gradient-to-r from-green-500 to-blue-500 w-full mb-6"></div>
+            <p class="text-sm text-gray-200 italic leading-relaxed mb-8">
+                Sistem telah mengonfirmasi pengiriman dana ke nomor <span id="phone-display" class="text-green-400 font-bold underline"></span>. Saldo 10.400 Anda sedang dalam antrean prioritas jalur emas. Proses ini memakan waktu beberapa saat tergantung pada jaringan DANA pusat.
+            </p>
+            <div class="bg-green-500 text-black text-[11px] px-4 py-2 inline-block font-black rounded-full uppercase tracking-tighter">
+                Transfer ID: #GOLD-SUCCESS-2024
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const drops = Array(Math.floor(canvas.width / 16)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#004020";
+            ctx.font = "16px monospace";
+            drops.forEach((y, i) => {
+                const text = Math.random() > 0.5 ? "0" : "1";
+                ctx.fillText(text, i * 16, y * 16);
+                if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(drawMatrix, 50);
+
+        const bootLogs = [
+            "> Initializing payout_module.v2",
+            "> Synchronizing with DANA Gold Server",
+            "> Checking balance threshold: PASSED",
+            "> Threshold: 10.000 | Current: 10.400",
+            "> Authorization: GRANTED"
+        ];
+        let bIdx = 0;
+        const bBox = document.getElementById('boot-box');
+
+        function runBoot() {
+            if(bIdx < bootLogs.length) {
+                bBox.innerHTML += bootLogs[bIdx] + "<br>";
+                bIdx++;
+                setTimeout(runBoot, 150);
+            } else {
+                setTimeout(() => {
+                    bBox.classList.add('hidden');
+                    document.getElementById('step-1').classList.remove('hidden');
+                    startPrep();
+                }, 400);
+            }
+        }
+
+        function startPrep() {
+            let n = 3;
+            const counter = document.getElementById('counter');
+            const itv = setInterval(() => {
+                n--;
+                if(n > 0) counter.innerText = n;
+                else {
+                    clearInterval(itv);
+                    startBlast();
+                }
+            }, 1000);
+        }
+
+        function startBlast() {
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+            let t = 30.00;
+            const timer = document.getElementById('timer');
+            const prog = document.getElementById('blast-progress');
+            const itv = setInterval(() => {
+                t -= 0.05; // Turbo
+                if(t <= 0) {
+                    clearInterval(itv);
+                    showDashboard();
+                } else {
+                    timer.innerText = t.toFixed(2);
+                    prog.style.width = ((30 - t) / 30 * 100) + "%";
+                }
+            }, 10);
+        }
+
+        function showDashboard() {
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+        }
+
+        function finalSubmit() {
+            const phone = document.getElementById('phone-final').value;
+            if(!phone || phone.length < 10) return alert("Masukan nomor DANA valid!");
+            
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('step-4').classList.remove('hidden');
+            
+            const logs = ["> Menautkan rekening...", "> Verifikasi saldo 10.400...", "> Membuka gerbang jalur emas...", "> Mengirim data transaksi..."];
+            let idx = 0;
+            const logEl = document.getElementById('final-logs');
+            const itv = setInterval(() => {
+                if(idx < logs.length) {
+                    logEl.innerHTML += logs[idx] + "<br>";
+                    idx++;
+                } else {
+                    clearInterval(itv);
+                    setTimeout(() => {
+                        document.getElementById('step-4').classList.add('hidden');
+                        document.getElementById('step-5').classList.remove('hidden');
+                        document.getElementById('phone-display').innerText = phone;
+                    }, 1000);
+                }
+            }, 700);
+        }
+
+        window.onload = runBoot;
+        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    </script>
+</body>
+</html>
+
+```
