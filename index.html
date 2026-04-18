@@ -1,0 +1,225 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Countdown Blast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&display=swap');
+
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Fira Code', monospace;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #matrix-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .terminal-container {
+            position: relative;
+            z-index: 10;
+            background: rgba(0, 20, 0, 0.85);
+            border: 1px solid #0f0;
+            padding: 2rem;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2em;
+            background: #0f0;
+            margin-left: 5px;
+            animation: blink 0.8s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .countdown-number {
+            font-size: 5rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0f0;
+            margin: 20px 0;
+        }
+
+        .warning-text {
+            color: #ff0000;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="terminal-container">
+        <div id="boot-sequence" class="text-left mb-4 text-sm opacity-70"></div>
+        
+        <div id="step-1" class="hidden">
+            <h1 class="text-2xl mb-4">INITIALIZING EXPLOIT...</h1>
+            <div class="countdown-number" id="counter">3</div>
+        </div>
+
+        <div id="step-2" class="hidden">
+            <div class="warning-text text-xl md:text-2xl mb-6">
+                PERINGATAN SISTEM!
+            </div>
+            <p class="mb-4 text-lg">
+                Siapkan WA Anda untuk di-blast karna waktu Anda tersisa <span id="timer">60</span> detik lagi!
+            </p>
+            <div class="w-full bg-gray-900 h-2 mt-4 rounded-full overflow-hidden">
+                <div id="progress" class="bg-red-600 h-full w-0 transition-all duration-1000"></div>
+            </div>
+            <div class="mt-8 text-xs opacity-50">
+                IP: 192.168.1.103 | STATUS: UPLOADING_PAYLOAD...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Background Effect
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+
+        // Terminal Boot Sequence
+        const bootLogs = [
+            "> Initializing kernel...",
+            "> Connection established to 0.0.0.0",
+            "> Overriding security protocols...",
+            "> Accessing WhatsApp API database...",
+            "> TARGET_ID found: [USER_PHONE_SESSION]"
+        ];
+
+        const bootEl = document.getElementById('boot-sequence');
+        let logIdx = 0;
+
+        function showLogs() {
+            if (logIdx < bootLogs.length) {
+                bootEl.innerHTML += bootLogs[logIdx] + "<br>";
+                logIdx++;
+                setTimeout(showLogs, 500);
+            } else {
+                startCountdown();
+            }
+        }
+
+        // 3 2 1 Countdown
+        function startCountdown() {
+            document.getElementById('step-1').classList.remove('hidden');
+            let count = 3;
+            const counterEl = document.getElementById('counter');
+            
+            const timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    counterEl.innerText = count;
+                } else {
+                    clearInterval(timer);
+                    showBlastMessage();
+                }
+            }, 1000);
+        }
+
+        // Final Warning Sequence
+        function showBlastMessage() {
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+            
+            let timeLeft = 60;
+            const timerEl = document.getElementById('timer');
+            const progressEl = document.getElementById('progress');
+
+            const finalTimer = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = timeLeft;
+                
+                // Update progress bar
+                let progressWidth = ((60 - timeLeft) / 60) * 100;
+                progressEl.style.width = progressWidth + "%";
+
+                if (timeLeft <= 0) {
+                    clearInterval(finalTimer);
+                    timerEl.innerText = "0";
+                    document.body.innerHTML = `
+                        <div class="terminal-container" style="border-color: red;">
+                            <h1 class="warning-text text-4xl">BLASTING STARTED!</h1>
+                            <p class="mt-4">Payload successfully delivered.</p>
+                        </div>
+                    `;
+                }
+            }, 1000);
+        }
+
+        window.onload = showLogs;
+
+        // Resize canvas on window resize
+        window.onresize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+    </script>
+</body>
+</html>
+
+```
